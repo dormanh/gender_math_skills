@@ -93,16 +93,31 @@ for edge in set(edges) - path_edges:
     
     
 """
-------------------------
-Break up path into parts
-------------------------
+---------------------
+Construct subgraph 1.
+---------------------
 """
     
 path_1 = {"family", "genetics", "early interests", "gender", "early stimulation", "early skills"}
-path_2 = {"early skills", "motivation", "exposure", "advanced skills"}
-
+g_1_edges = subgraph_edges(edges, path_1)
 g_1 = Digraph()
-g_2 = Digraph()
 
-g_1.edges(subgraph_edges(edges, path_1))
+for node in path_1 & path_nodes:
+    g_1.node(node, _attributes=attr)
+    
+for edge in g_1_edges & path_edges:
+    g_1.edge(*edge, _attributes=attr)
+    
+for edge in g_1_edges - path_edges:
+    g_1.edge(*edge)
+    
+
+"""
+---------------------
+Construct subgraph 2.
+---------------------
+"""
+
+path_2 = {"early skills", "motivation", "exposure", "advanced skills"}
+g_2 = Digraph()
 g_2.edges(subgraph_edges(edges, path_2))
