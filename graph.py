@@ -2,23 +2,15 @@
 # coding: utf-8
 
 from graphviz import Digraph
+import networkx as nx
 from itertools import combinations
 
-g = Digraph()
 
-attr = {"color": "orange"}
-
-path_nodes = [
-    "gender",
-    "early stimulation",
-    "early skills",
-    "exposure",
-    "motivation",
-    "advanced skills",
-]
-
-for node in path_nodes:
-    g.node(node, _attributes=attr)
+"""
+---------------------
+Define causal effects
+---------------------
+"""
 
 edges = (
     (
@@ -51,12 +43,66 @@ edges = (
     ]
 )
 
-path_edges = set(edges) & set(
-    list(combinations(path_nodes, 2)) + list(combinations(reversed(path_nodes), 2))
-) - set([("gender", "motivation"), ("gender", "exposure")])
+
+"""
+---------------------
+Isolate relevant path
+---------------------
+"""
+
+path_nodes = {
+    "gender",
+    "early stimulation",
+    "early skills",
+    "exposure",
+    "motivation",
+    "advanced skills",
+}
+
+def subgraph_edges(all_edges, selected_nodes, exclude=set()):
+    
+    graph = nx.DiGraph()
+    graph.add_edges_from(all_edges)
+    subgraph = nx.subgraph(graph, selected_nodes)
+    
+    return set(subgraph.edges()) - exclude
+
+
+path_edges = subgraph_edges(edges, path_nodes, exclude={("gender", "motivation"),
+         ("gender", "exposure"),
+         ("early stimulation", "motivation")})
+
+
+"""
+------------------------
+Construct causal diagram
+------------------------
+"""
+
+g = Digraph()
+attr = {"color": "orange"}
+
+for node in path_nodes:
+    g.node(node, _attributes=attr)
 
 for edge in path_edges:
     g.edge(*edge, _attributes=attr)
 
 for edge in set(edges) - path_edges:
     g.edge(*edge)
+    
+    
+"""
+------------------------
+Break up path into parts
+------------------------
+"""
+    
+path_1 = {"family", "genetics", "early interests", "gender", "early stimulation", "early skills"}
+path_2 = {"early skills", "motivation", "exposure", "advanced skills"}
+
+g_1 = Digraph()
+g_2 = Digraph()
+
+g_1.edges(subgraph_edges(edges, path_1))
+g_2.edges(subgraph_edges(edges, path_2))
