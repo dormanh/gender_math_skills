@@ -119,5 +119,14 @@ Construct subgraph 2.
 """
 
 path_2 = {"early skills", "motivation", "exposure", "advanced skills"}
+g_2_edges = subgraph_edges(edges, path_2)
 g_2 = Digraph()
-g_2.edges(subgraph_edges(edges, path_2))
+
+for node in path_2:
+    g_2.node(node, _attributes=attr)
+    
+for edge in g_2_edges:
+    g_2.edge(*edge, _attributes=attr)
+    
+for edge in set(edges) - g_2_edges:
+    g_2.edge(*edge)
